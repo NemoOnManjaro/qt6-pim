@@ -5,44 +5,31 @@
 # Contributor: Alexey Andreyev <aa13q@ya.ru>
 # Maintainer: James Kittsmiller (AJSlye) <james@nulogicsystems.com>
 
-pkgname=qt5-pim-git
-pkgver=r1020.8fec622c
+pkgname=qt5-pim
+pkgver=5.6.0+git15
 pkgrel=1
 pkgdesc='Qt Personal Information Management'
-url='http://code.qt.io/cgit/qt/qtpim.git'
+url='https://github.com/sailfishos/qtpim'
 arch=(x86_64 aarch64)
 license=(LGPL-2.1-only LGPL-3.0-only GPL-3.0-only Qt-GPL-exception-1.0)
-conflicts=(qt5-pim)
-provides=(qt5-pim)
-depends=(qt5-declarative)
-makedepends=(git)
-source=("${pkgname}::git+${url}" "0001-Patch-module-version.patch")
-sha512sums=('SKIP'
-'6e7d43f36bbf23dedd860727259a4bf5dfad8e8548a3d4a19c974b9afed87ebb25264cc08572bdbb0f703c95ae1a5f6a7a5ca8cd742feaf46440fe7c282535d2')
-
-prepare() {
-  cd "${srcdir}/${pkgname}"
-  git checkout 8fec622c
-  patch -p1 --input="${srcdir}/0001-Patch-module-version.patch"
-}
+depends=('qt5-declarative')
+source=("${url}/archive/refs/tags/mer/$pkgver.tar.gz")
+sha256sums=('88e7b47dadb9aae0d729c4b5167c3cde79f429e51b25f642d76215ed97fadbb1')
 
 build() {
-  mkdir -p "${srcdir}/${pkgname}/build"
-  cd "${srcdir}/${pkgname}/build"
-  qmake-qt5 ..
-  make
-}
-
-check() {
-  cd "${srcdir}/${pkgname}/build"
-  make check TESTARGS="-silent"
+    cd qtpim-mer-5.6.0-git15
+    touch .git
+    qmake-qt5
+    make -j1
 }
 
 package() {
-  cd "${srcdir}/${pkgname}/build"
-  make -j 1 INSTALL_ROOT="$pkgdir/" install
+    cd qtpim-mer-5.6.0-git15
+    make -j 1 INSTALL_ROOT="$pkgdir/" install
+# Remove tests
+    rm -rf $pkgdir/usr/tests
 
-  # Drop QMAKE_PRL_BUILD_DIR because it references the build dir
-  find "$pkgdir/usr/lib" -type f -name '*.prl' \
+# Drop QMAKE_PRL_BUILD_DIR because it references the build dir
+    find "$pkgdir/usr/lib" -type f -name '*.prl' \
     -exec sed -i -e '/^QMAKE_PRL_BUILD_DIR/d' {} \;
 }
